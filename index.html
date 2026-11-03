@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050711" />
+    <title>Geo Arrow // Space Run</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="game-card" aria-label="Geo Arrow Space Run game">
+        <header class="topbar">
+          <div class="brand-lockup">
+            <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div>
+              <div class="eyebrow">MISSION CONTROL <span class="live-dot"></span></div>
+              <h1>GEO ARROW <em>//</em> SPACE RUN</h1>
+            </div>
+          </div>
+          <div class="header-chip"><span class="chip-dot"></span> SOLO FLIGHT</div>
+        </header>
+
+        <div class="hud">
+          <div class="hud-block distance-block">
+            <div class="hud-label">DISTANCE</div>
+            <div class="hud-value"><span id="distanceValue">0000</span><small> m</small></div>
+          </div>
+          <div class="progress-wrap" aria-hidden="true">
+            <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-meta"><span>LAUNCH</span><span>ENDLESS SECTOR</span><span>03:00 LIMIT</span></div>
+          </div>
+          <div class="hud-block timer-block">
+            <div class="hud-label">TIME REMAINING</div>
+            <div class="hud-value timer-value" id="timerValue">03:00</div>
+          </div>
+        </div>
+
+        <div class="viewport-wrap">
+          <canvas id="gameCanvas" aria-label="Space run game canvas"></canvas>
+          <div class="scanline"></div>
+
+          <div class="overlay intro-overlay" id="introOverlay">
+            <div class="mission-panel">
+              <div class="panel-kicker"><span class="kicker-line"></span> ONE LEVEL / 180 SECONDS <span class="kicker-line"></span></div>
+              <div class="rocket-badge">✦</div>
+              <h2>ENTER THE<br /><span>NEBULA</span></h2>
+              <p>Guide your rocket through the deep-space course.<br />How far can you make it before the clock hits zero?</p>
+              <button class="primary-btn" id="startButton"><span>START MISSION</span><b>↗</b></button>
+              <div class="controls"><span class="keycap">SPACE</span><span class="or">or</span><span class="keycap">CLICK / TAP</span><span class="control-copy">to boost upward</span></div>
+            </div>
+          </div>
+
+          <div class="overlay result-overlay hidden" id="resultOverlay">
+            <div class="result-panel">
+              <div class="panel-kicker"><span class="kicker-line"></span> FLIGHT REPORT <span class="kicker-line"></span></div>
+              <div class="result-status" id="resultStatus">MISSION COMPLETE</div>
+              <div class="final-distance"><span id="finalDistance">0000</span><small> M</small></div>
+              <p id="resultCopy">You crossed the sector before the clock ran out.</p>
+              <button class="primary-btn" id="restartButton"><span>FLY AGAIN</span><b>↻</b></button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="bottom-bar">
+          <div class="status-item"><span class="status-dot"></span><span>FLIGHT SYSTEMS NOMINAL</span></div>
+          <div class="tip"><span>TIP</span> Release to drop. Thread the gaps.</div>
+          <div class="build-id">GA-SR / v1.0</div>
+        </footer>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
