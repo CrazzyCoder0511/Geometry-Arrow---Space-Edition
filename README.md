@@ -4,16 +4,11 @@ A frontend-only endless space runner for a school space and technology event.
 
 ## Run it locally
 
-1. Install Node.js if it is not already installed.
-2. Open this folder in VS Code or Cursor.
-3. In the terminal, run:
+No Node.js or backend is required.
 
-```bash
-npm install
-npm run dev
-```
+Open `index.html` directly in a browser. You can also right-click it in VS Code or Cursor and choose **Open with Default Browser**.
 
-4. Open the local URL Vite prints, usually `http://localhost:5173`.
+The Vite setup in `package.json` is optional; it is not required to play the static version.
 
 ## Controls
 

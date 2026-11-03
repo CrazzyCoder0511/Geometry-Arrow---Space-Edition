@@ -1,5 +1,3 @@
-import './style.css';
-
 const canvas = document.querySelector('#gameCanvas');
 const ctx = canvas.getContext('2d');
 const startButton = document.querySelector('#startButton');
@@ -30,7 +28,19 @@ let stars = [];
 let particles = [];
 let obstacles = [];
 let planets = [];
+let patternIndex = 0;
 let nextObstacleId = 0;
+
+const obstaclePatterns = [
+  { type: 'gate', center: 0.50, gapRatio: 0.46 },
+  { type: 'spike', edge: 'top', heightRatio: 0.19 },
+  { type: 'gate', center: 0.38, gapRatio: 0.43 },
+  { type: 'asteroid', y: 0.68, radius: 26 },
+  { type: 'spike', edge: 'bottom', heightRatio: 0.2 },
+  { type: 'gate', center: 0.62, gapRatio: 0.40 },
+  { type: 'laser', center: 0.42, heightRatio: 0.31 },
+  { type: 'asteroid', y: 0.32, radius: 29 },
+];
 
 const rocket = { x: 0.2, y: 0.5, vy: 0, tilt: 0, trailClock: 0 };
 
@@ -73,6 +83,7 @@ function resetGame() {
   spawnClock = 0;
   particles = [];
   obstacles = [];
+  patternIndex = 0;
   rocket.y = 0.5;
   rocket.vy = 0;
   rocket.tilt = 0;
@@ -106,20 +117,26 @@ function endGame(completed) {
 }
 
 function spawnObstacle(x = width + 100) {
+  const minimumSpawnGap = Math.max(160, Math.min(310, width * 0.38) - Math.min(elapsed * 0.35, 110));
+  const obstacleTooClose = obstacles.some((obstacle) => obstacle.x > -130 && Math.abs(obstacle.x - x) < minimumSpawnGap);
+  if (obstacleTooClose) return false;
+
   const difficulty = Math.min(elapsed / GAME_LENGTH, 1);
-  const lane = Math.random();
-  const gap = Math.max(130 - difficulty * 30, 94);
-  const center = 0.25 + Math.random() * 0.5;
-  const typeRoll = Math.random();
-  if (typeRoll < 0.26) {
-    obstacles.push({ id: nextObstacleId++, type: 'gate', x, gapY: center * height, gap, w: 48, hue: Math.random() > 0.5 ? 'violet' : 'cyan' });
-  } else if (typeRoll < 0.53) {
-    obstacles.push({ id: nextObstacleId++, type: 'spike', x, y: lane < 0.5 ? 0 : height - 42, edge: lane < 0.5 ? 'top' : 'bottom', w: 70, h: 90 + difficulty * 25 });
-  } else if (typeRoll < 0.76) {
-    obstacles.push({ id: nextObstacleId++, type: 'asteroid', x, y: 90 + Math.random() * (height - 180), r: 22 + Math.random() * 17, spin: Math.random() * TAU, hue: Math.random() > 0.5 ? 'pink' : 'gold' });
-  } else {
-    obstacles.push({ id: nextObstacleId++, type: 'laser', x, y: center * height, w: 22, h: 130 + Math.random() * 60, phase: Math.random() * TAU });
+  const pattern = obstaclePatterns[patternIndex % obstaclePatterns.length];
+  patternIndex += 1;
+  const gap = Math.max(pattern.gapRatio * height - difficulty * 28, 94);
+  const center = pattern.center ?? 0.5;
+
+  if (pattern.type === 'gate') {
+    obstacles.push({ id: nextObstacleId++, type: 'gate', x, gapY: center * height, gap, w: 48 });
+  } else if (pattern.type === 'spike') {
+    obstacles.push({ id: nextObstacleId++, type: 'spike', x, y: pattern.edge === 'top' ? 0 : height - 42, edge: pattern.edge, w: 70, h: pattern.heightRatio * height + difficulty * 25 });
+  } else if (pattern.type === 'asteroid') {
+    obstacles.push({ id: nextObstacleId++, type: 'asteroid', x, y: pattern.y * height, r: pattern.radius + difficulty * 5, spin: 0 });
+  } else if (pattern.type === 'laser') {
+    obstacles.push({ id: nextObstacleId++, type: 'laser', x, y: center * height, w: 22, h: pattern.heightRatio * height + difficulty * 30, phase: 0 });
   }
+  return true;
 }
 
 function loop(now) {
@@ -132,7 +149,7 @@ function loop(now) {
 
 function update(dt) {
   elapsed += dt;
-  const speed = 250 + Math.min(elapsed * 1.65, 185);
+  const speed = 290 + Math.min(elapsed * 1.8, 210);
   const distancePerSecond = speed / 29;
   distance += distancePerSecond * dt;
   scroll += speed * dt;
@@ -143,12 +160,10 @@ function update(dt) {
     spawnObstacle();
   }
 
-  const gravity = 0.88;
-  const lift = boostHeld ? -1.7 : 0;
-  rocket.vy += (gravity + lift) * dt;
-  rocket.vy = Math.max(-0.92, Math.min(0.92, rocket.vy));
+  const waveVelocity = boostHeld ? -0.78 : 0.78;
+  rocket.vy += (waveVelocity - rocket.vy) * Math.min(dt * 22, 1);
   rocket.y += rocket.vy * dt;
-  rocket.tilt += ((rocket.vy * 0.72) - rocket.tilt) * Math.min(dt * 10, 1);
+  rocket.tilt += (((boostHeld ? -0.6 : 0.6) - rocket.tilt)) * Math.min(dt * 14, 1);
   rocket.trailClock += dt;
   if (rocket.trailClock > 0.035) {
     rocket.trailClock = 0;
@@ -408,12 +423,17 @@ function drawIdleMotif() {
   ctx.beginPath(); ctx.arc(width * .2, height * .5, 54, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
 }
 
+function boostRocket() {
+  if (gameState !== 'playing') return;
+  boostHeld = true;
+}
+
 function setBoost(value) { if (gameState === 'playing') boostHeld = value; }
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', startGame);
-window.addEventListener('keydown', (event) => { if (event.code === 'Space' || event.code === 'ArrowUp') { event.preventDefault(); if (gameState === 'ready' || gameState === 'complete' || gameState === 'crashed') startGame(); else setBoost(true); } });
+window.addEventListener('keydown', (event) => { if (event.code === 'Space' || event.code === 'ArrowUp') { event.preventDefault(); if (gameState === 'ready' || gameState === 'complete' || gameState === 'crashed') startGame(); else if (!event.repeat) boostRocket(); } });
 window.addEventListener('keyup', (event) => { if (event.code === 'Space' || event.code === 'ArrowUp') setBoost(false); });
-canvas.addEventListener('pointerdown', () => { if (gameState === 'ready' || gameState === 'complete' || gameState === 'crashed') startGame(); else setBoost(true); });
+canvas.addEventListener('pointerdown', () => { if (gameState === 'ready' || gameState === 'complete' || gameState === 'crashed') startGame(); else boostRocket(); });
 window.addEventListener('pointerup', () => setBoost(false));
 window.addEventListener('resize', resize);
 
